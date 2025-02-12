@@ -9,5 +9,4 @@ COPY . .
 
 RUN go build -o hollow .
 
-#CMD ["tail", "-f", "/dev/null"]
 CMD ["./hollow"]
