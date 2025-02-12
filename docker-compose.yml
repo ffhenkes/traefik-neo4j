@@ -1,0 +1,55 @@
+version: "3.8"
+
+services:
+  neo4j-r1:
+    image: neo4j:5
+    container_name: neo4j-r1
+    environment:
+      - NEO4J_AUTH=neo4j/password
+    ports:
+      - "7373:7474"  # HTTP
+      - "7586:7687"  # Bolt
+    labels:
+      - "traefik.tcp.routers.neo4j.rule=HostSNI(`*`)"
+      - "traefik.tcp.routers.neo4j.entrypoints=bolt"
+      - "traefik.tcp.services.neo4j.loadbalancer.server.port=7687"
+
+  neo4j-r2:
+    image: neo4j:5
+    container_name: neo4j-r2
+    environment:
+      - NEO4J_AUTH=neo4j/password
+    ports:
+      - "7575:7474"  # HTTP
+      - "7788:7687"  # Bolt
+    labels:
+      - "traefik.tcp.routers.neo4j.rule=HostSNI(`*`)"
+      - "traefik.tcp.routers.neo4j.entrypoints=bolt"
+      - "traefik.tcp.services.neo4j.loadbalancer.server.port=7687"
+
+  traefik:
+    image: traefik:v2.10
+    container_name: traefik
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--entrypoints.bolt.address=:7687"
+    ports:
+      - "7687:7687"  # Bolt
+      - "8080:8080"  # Traefik Panel
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
+  cypher-shell:
+    image: neo4j:5
+    container_name: cypher-shell
+    entrypoint: ["bash"]
+    depends_on:
+      - traefik
+    networks:
+      - default
+    tty: true
+
+networks:
+  default:
+    driver: bridge
