@@ -40,11 +40,29 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
 
+  cypher-shell:
+    image: neo4j:5
+    container_name: cypher-shell
+    depends_on:
+      - neo4j-r1
+      - neo4j-r2
+    entrypoint: ["/bin/bash", "/scripts/init.sh"]
+    volumes:
+      - ./scripts:/scripts
+    networks:
+      - default
+    tty: true
+
   hollow-test:
     build:
       context: ./hollow
     container_name: hollow-test
+    ports:
+      - "9090:9090"  # Traefik Panel
     depends_on:
+      - neo4j-r1
+      - neo4j-r2
+      - cypher-shell
       - traefik
     networks:
       - default

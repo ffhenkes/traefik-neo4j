@@ -1,9 +1,13 @@
 * Load Balancing Neo4J Bolt with Traefik
 
 ** Run
-
 #+BEGIN_SRC shell
-docker-compose up -d
+docker-compose up -d --build
+#+END_SRC
+
+** Watch
+#+BEGIN_SRC shell
+docker-compose logs -f
 #+END_SRC
 
 ** Traefik Dashboard
@@ -19,13 +23,25 @@ docker inspect traefik | grep '"IPAddress"'
 #+BEGIN_SRC shell
 docker exec -ti cypher-shell bash
 root@c41f646a0de7:/var/lib/neo4j# apt-get update -qqy && apt-get install netcat -qqy # install netcat for port debugging
-root@c41f646a0de7:/var/lib/neo4j# nc -zv <replace-with-traefik-ip-address> 7687
-Connection to 172.22.0.2 7687 port [tcp/*] succeeded!
+root@c41f646a0de7:/var/lib/neo4j# nc -zv traefik 7687
+Connection to traefik 7687 port [tcp/*] succeeded!
 #+END_SRC
 
 ** Test bolt Connection via Traefik
 #+BEGIN_SRC shell
 docker exec -ti cypher-shell bash
-cypher-shell -a bolt://172.22.0.2:7687 -u neo4j -p password
-Connected to Neo4j using Bolt protocol version 5.7 at bolt://172.22.0.2:7687 as user neo4j.
+cypher-shell -a bolt://traefik:7687 -u neo4j -p password
+Connected to Neo4j using Bolt protocol version 5.7 at bolt://traefik:7687 as user neo4j.
+#+END_SRC
+
+** Execute hollow test 
+Hollow test simulates multiple user access with different sessions/connections with neo4j-driver outside from the connections pool.
+#+BEGIN_SRC shell
+curl -v http://localhost:9090/test
+docker-compose logs -f hollow-test
+#+END_SRC
+
+** Terminate
+#+BEGIN_SRC shell
+docker-compose down
 #+END_SRC
