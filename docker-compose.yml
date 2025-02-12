@@ -40,10 +40,10 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
 
-  cypher-shell:
-    image: neo4j:5
-    container_name: cypher-shell
-    entrypoint: ["bash"]
+  hollow-test:
+    build:
+      context: ./hollow
+    container_name: hollow-test
     depends_on:
       - traefik
     networks:
